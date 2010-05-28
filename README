@@ -1,5 +1,8 @@
-OpenID Authentication for Hobo
-===============================
+OpenID Authentication for Hobo (VERSION 2)
+==========================================
+
+NEW in version 2: Totally rewritten to work with v2.x of ruby-openid
+gem, and with Hobo's new user models and controllers.
 
 This plugin provides a drop-in replacement authentication system for
 Hobo (http://hobocentral.net/). Instead of using password based
@@ -21,17 +24,10 @@ that it returns a given user record when passed any of that user's
 OpenID URLs.
 
 
-Known Bugs
-==========
-
-This plugin is currently not compatible with the latest version of
-Hobo. I plan to update it eventually.
-
-
 Installing
 ===========
 
-- Install Hobo plugin from hobocentral.net
+- Install Hobo plugin
 - Install the ruby-openid and ruby-yadis gems.
 - Unpack the plugin in your vendor/plugins directory.
 
@@ -47,40 +43,41 @@ to set up. Here is the process in its entirety:
 Create a user model
 -------------------
 
-Run this command to use Hobo's generation scripts to create a user
-model:
+The default hobo command now creates the User model - change User 
+as appropriate if you call it something else.
 
-    script/generate hobo_user_model User
+Open app/models/user.rb to remove this line:
 
-You can replace User with a different name, if you want to.
+    hobo_user_model
 
-Open app/models/user.rb to remove these lines:
+and replace it with these:
 
-    hobo_model
+    hobo_openid_user_model
 
-    include Hobo::AuthenticatedUser
+    fields do 
+      openid :string, :login => true
+      administrator :boolean, :default => false
+      remember_token :string
+      remember_token_expires_at :datetime
+      timestamps
+    end
 
-    set_login_attr :username
+NOTES:
+- the administrator column can be omitted, if you also leave out
+set_admin_on_first_user
+- the remember_token fields are optional
 
-and replace them with this one:
+The attribute identified for login will be used to store the openid.
 
-    hobo_openid_user_model :openid
+OpenID can also provide selected information about a user (full name,
+nickname, etc.). You'll probably want to use some of this to make
+the display a little nicer. At the very least, you will probably want
+the nickname field. If you add it, add the following to user.rb:
 
-Replace openid with the name of the database column you will be using
-to store identity urls. That will also be the login attribute for this
-model.
+    def name; nickname; end
 
-The database table for your user model will need to have these
-columns:
-
-    table.string   :openid
-    table.string   :remember_token
-    table.datetime :remember_token_expires_at
-
-Again, replace openid with whatever you want to use.
-
-If you want to set up simple registration, see the simple registration
-section at the end of this file.
+Hobo will look for an attribute "name" for display purposes in most
+of the Rapid library.
 
 
 Create a users controller
@@ -89,11 +86,7 @@ Create a users controller
 Create a controller - either manually or using a generation
 script. Put this line in it:
 
-    hobo_openid_user_controller User
-
-User is optional. You can leave that out if the name of the controller
-is the plural of the name of the user model. Or you can change it to
-the name of your user model.
+    hobo_openid_user_controller
 
 The controller does not need to contain anything other than that
 single line. Basic actions will be defined automatically.
@@ -106,12 +99,13 @@ If the controller contains this line, make sure to remove it:
 Add filters to application.rb
 -----------------------------
 
+NOTE: not extensively tested - somebody want to check this?
+
 Add this line to app/controllers/application.rb:
 
     before_filter :login_required
 
-If you want the option of having users signed in for up to two weeks
-at a time, add this line above the previous one:
+If you added the remember_token fields, add this line above the previous one:
 
     before_filter :login_from_cookie
 
@@ -127,17 +121,8 @@ Add this line to config/routes.rb:
 Create a login page
 -------------------
 
-Hobo's default login page will work fine. It's just that the password
-field won't do anything. You will probably want to customize this
-field to remove it.
-
-If you want to create your own login page, all that it requires is a
-form with a single field that submits a parameter called "login". 
-
-You can also optionally add a checkbox that submits a "remember_me"
-parameter. If you do, when a user checks the box before logging in
-that user will stay signed in for two weeks if you also included the
-:login_from_cookie before_filter in your application controller.
+Now done automatically! Could probably use more info on OpenID.
+"Remember me" box will appear if the model defines the relevant fields.
 
 
 Simple Registration
@@ -168,7 +153,7 @@ asking for, and she will be given an opportunity to enter that
 information.
 
 If your user does enter the requested information, it will be recorded
-in the database in her user record. Using the above mappings, her
+in the database in her user record. Using the above mappings, here
 email address will be stored in the email column, her name will be
 stored in the full_name column, and her time zone will be stored in
 the time_zone column.
@@ -195,12 +180,12 @@ Policy URL
 ==========
 
 If you decide to use simple registration, it might also be a good idea
-to provide a policy URL. This is a URL for a page that describes your
-policy about handling users' personal information. Most users will
-feel more comfortable using your application if they are assured that
-their information will be kept private.
+to provide a policy URL. This is a URL to a page that describes your
+policy about handling users' data. Most users will feel more
+comfortable using your application if they are assured that their
+information will be kept private.
 
-If you specify a policy URL, then when the user is asked for simple
+If you specify a privacy URL, then when the user is asked for simple
 registration information she will also be shown a link to your
 policy. If you do not provide a policy URL, some providers will show a
 message to the user warning that you did not provide a privacy policy.

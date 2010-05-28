@@ -10,10 +10,10 @@ module Hobo
         return
       end
       
-      require "#{RAILS_ROOT}/app/controllers/application" unless Object.const_defined? :ApplicationController
+      require "#{RAILS_ROOT}/app/controllers/application_controller" unless Object.const_defined? :ApplicationController
       require "#{RAILS_ROOT}/app/assemble.rb" if File.exists? "#{RAILS_ROOT}/app/assemble.rb"
       
-      for model in Hobo.models
+      for model in Hobo::Model.all_models
         controller_name = "#{model.name.pluralize}Controller"
         controller = controller_name.constantize if (Object.const_defined? controller_name) || 
           File.exists?("#{RAILS_ROOT}/app/controllers/#{controller_name.underscore}.rb")

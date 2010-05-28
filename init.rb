@@ -17,10 +17,9 @@ end
 
 class ActiveRecord::Base
   
-  def self.hobo_openid_user_model(login_attr=nil, &b)
+  def self.hobo_openid_user_model
     include Hobo::Model
     include Hobo::OpenidAuthenticatedUser
-    set_login_attr(login_attr, &b) if login_attr
   end
   
 end
