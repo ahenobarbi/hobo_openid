@@ -85,6 +85,10 @@ module Hobo
       false
     end
     
+    def signed_up?
+      true
+    end
+
   end
 
 end
