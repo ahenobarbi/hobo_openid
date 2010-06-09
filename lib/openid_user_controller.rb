@@ -11,7 +11,7 @@ module Hobo
         base.class_eval do
 	  skip_before_filter :login_required, :only => [:login, :complete]
 
-	  include_taglib "rapid_openid_user_pages", :plugin => "openid_authentication_for_hobo"
+	  include_taglib "rapid_openid_user_pages", :plugin => "hobo"
 
           show_action :account
         end
