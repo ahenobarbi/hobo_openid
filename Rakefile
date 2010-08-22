@@ -10,10 +10,9 @@ begin
     gem.email = "jbartosik@gmail.com"
     gem.homepage = "http://github.com/ahenobarbi/hobo_openid"
     gem.authors = ["Joachim Filip Ignacy Bartosik"]
-    gem.add_development_dependency "thoughtbot-shoulda", ">= 0"
     gem.add_dependency "hobo", ">=1.0.0"
     gem.add_dependency "rails", ">=2.3.5"
-    gem.add_dependency "openid", ">=2.1.7"
+    gem.add_dependency "ruby-openid", ">=2.1.7"
     gem.require_paths = ['lib']
   end
   Jeweler::GemcutterTasks.new
